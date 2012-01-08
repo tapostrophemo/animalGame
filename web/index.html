@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="res/jaws.js"></script>
+<link type="text/css" rel="stylesheet" href="res/style.css"/>
+<title>Animal Game</title>
+</head>
+<body>
+
+<div id="info">
+ <h1>Animal Game</h1>
+</div>
+
+<canvas width="600" height="375"></canvas>
+
+<div id="footer">
+ <p>Powered by <a href="http://jawsjs.com/">Jaws HTML5 javascript game lib</a>.</p>
+</div>
+
+<script>
+var center = {};
+var player_position = {x: 0, y: 0};
+
+function PauseState() {
+  this.setup = function () {
+    jaws.on_keydown("esc", function () {jaws.switchGameState(PlayState)});
+  };
+
+  this.draw = function () {
+    jaws.context.fillStyle = "rgba(128, 128, 128, 0.01)";
+    jaws.context.globalAlpha = 0.5;
+    jaws.context.fillRect(0, 0, jaws.width, jaws.height);
+
+    jaws.context.textAlign = "center";
+    jaws.context.font = "normal 18px 'Comic Sans', sans-serif";
+    jaws.context.fillStyle = "white";
+    jaws.context.fillText("Paused...press ESC to resume", center.x, center.y);
+  };
+}
+
+function WinState() {
+  this.setup = function () {
+    jaws.on_keydown("enter", function () {jaws.switchGameState(PlayState)});
+    jaws.on_keydown("q", function () {jaws.switchGameState(MenuState)});
+  };
+
+  this.draw = function () {
+    jaws.context.fillStyle = "rgba(128, 128, 128, 0.01)";
+    jaws.context.globalAlpha = 0.5;
+    jaws.context.fillRect(0, 0, jaws.width, jaws.height);
+
+    jaws.context.textAlign = "center";
+    jaws.context.font = "bold 24px 'Comic Sans', sans-serif";
+    jaws.context.fillStyle = "white";
+    jaws.context.fillText("Level complete", center.x, center.y);
+    jaws.context.font = "normal 11px sans-serif";
+    jaws.context.fillText("Press 'Enter' for next level, or 'Q' to quit", center.x, center.y + 24);
+  };
+}
+
+function PlayState() {
+  var player;
+  var targets;
+
+  this.setup = function () {
+    jaws.context.clearRect(0, 0, jaws.width, jaws.height);
+
+    player = new jaws.Sprite({image: "res/lemur.png", x: player_position.x || 0, y: player_position.y || 0});
+    targets = [
+      new jaws.Sprite({image: "res/earthworm.png", x: 50, y: 50}),
+      new jaws.Sprite({image: "res/earthworm.png", x: 100, y: 50}),
+      new jaws.Sprite({image: "res/earthworm.png", x: 50, y: 100})
+    ];
+
+    jaws.on_keydown("esc", function () {
+      player_position.x = player.x;
+      player_position.y = player.y;
+      jaws.switchGameState(PauseState);
+    });
+    jaws.preventDefaultKeys(["up", "down", "left", "right", "space"]);
+  };
+
+  this.update = function () {
+    if (jaws.pressed("left")) { player.x -= 2; }
+    if (jaws.pressed("right")) { player.x += 2; }
+    if (jaws.pressed("up")) { player.y -= 2; }
+    if (jaws.pressed("down")) { player.y += 2; }
+    constrainToCanvas(player);
+
+    for (var i = 0; i < targets.length; i++) {
+      if (jaws.collideOneWithOne(player, targets[i])) {
+        targets[i].eaten = true;
+      }
+    }
+
+    var remaining_targets = targets.filter( function(t) { if (!t.eaten) return t; } );
+    if (remaining_targets.length == 0) {
+      jaws.switchGameState(WinState);
+    }
+  };
+
+  this.draw = function () {
+    jaws.context.clearRect(0, 0, jaws.width, jaws.height);
+    player.draw();
+    for (var i = 0; i < targets.length; i++) {
+      if (!targets[i].eaten) {
+        targets[i].draw();
+      }
+    }
+  };
+
+  function constrainToCanvas(item) {
+    if (item.x < 0) { item.x = 0; }
+    if ((item.x + item.width) > jaws.width) { item.x = jaws.width - item.width; }
+    if (item.y < 0) { item.y = 0; }
+    if ((item.y + item.height) > jaws.height) { item.y = jaws.height - item.height; }
+  }
+}
+
+function MenuState() {
+  var lemur, worm;
+
+  this.setup = function () {
+    center.x = jaws.width / 2;
+    center.y = jaws.height / 2;
+    lemur = jaws.assets.get("res/lemur.png");
+    worm = jaws.assets.get("res/earthworm.png");
+    jaws.on_keydown("enter", function () {jaws.switchGameState(PlayState)});
+  };
+
+  this.draw = function () {
+    jaws.context.clearRect(0, 0, jaws.width, jaws.height);
+
+    jaws.context.fillStyle = "white";
+    jaws.context.textAlign = "center";
+    jaws.context.font = "bold 24px 'Comic Sans', sans-serif";
+    jaws.context.fillText("LEMUR VS. EARTHWORM!!!", center.x, center.y);
+    jaws.context.font = "normal 11px sans-serif";
+    jaws.context.fillText("Press 'Enter' to play", center.x, center.y + 24);
+
+    jaws.context.drawImage(lemur, center.x - lemur.width - 190, center.y - lemur.height/2);
+    jaws.context.drawImage(worm, center.x + worm.width + 125, center.y - worm.height/2);
+  };
+}
+
+window.onload = function () {
+  jaws.assets.add(["res/lemur.png", "res/earthworm.png"]);
+  jaws.start(MenuState);
+};
+</script>
+
+</body>
+</html>
+

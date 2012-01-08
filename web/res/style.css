@@ -1,0 +1,9 @@
+body {
+  color: white;
+  background-color: black;
+}
+
+canvas {
+  background: transparent url("ground.png") top left repeat-x;
+}
+
