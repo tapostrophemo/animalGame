@@ -23,6 +23,7 @@ zebra
 
 http://www.random.org/lists/
 http://animalsthatstartwith.com/animals-that-start-with-z
+http://news.ycombinator.com/item?id=3433748
 
 mongoose vs. lemur?
 mongoose vs. zebra?

@@ -19,7 +19,10 @@
 
 <script>
 var center = {};
-var player_position = {x: 0, y: 0};
+var lemur, worm;
+var player;
+var targets;
+var level = 1;
 
 function PauseState() {
   this.setup = function () {
@@ -28,7 +31,6 @@ function PauseState() {
 
   this.draw = function () {
     jaws.context.fillStyle = "rgba(128, 128, 128, 0.01)";
-    jaws.context.globalAlpha = 0.5;
     jaws.context.fillRect(0, 0, jaws.width, jaws.height);
 
     jaws.context.textAlign = "center";
@@ -40,43 +42,31 @@ function PauseState() {
 
 function WinState() {
   this.setup = function () {
-    jaws.on_keydown("enter", function () {jaws.switchGameState(PlayState)});
+    jaws.on_keydown("enter", function () {
+      initPlayerAndTargets(++level);
+      jaws.switchGameState(PlayState);
+    });
     jaws.on_keydown("q", function () {jaws.switchGameState(MenuState)});
   };
 
   this.draw = function () {
     jaws.context.fillStyle = "rgba(128, 128, 128, 0.01)";
-    jaws.context.globalAlpha = 0.5;
     jaws.context.fillRect(0, 0, jaws.width, jaws.height);
 
     jaws.context.textAlign = "center";
     jaws.context.font = "bold 24px 'Comic Sans', sans-serif";
     jaws.context.fillStyle = "white";
-    jaws.context.fillText("Level complete", center.x, center.y);
+    jaws.context.fillText("Level " + level + " complete", center.x, center.y);
     jaws.context.font = "normal 11px sans-serif";
     jaws.context.fillText("Press 'Enter' for next level, or 'Q' to quit", center.x, center.y + 24);
   };
 }
 
 function PlayState() {
-  var player;
-  var targets;
-
   this.setup = function () {
     jaws.context.clearRect(0, 0, jaws.width, jaws.height);
 
-    player = new jaws.Sprite({image: "res/lemur.png", x: player_position.x || 0, y: player_position.y || 0});
-    targets = [
-      new jaws.Sprite({image: "res/earthworm.png", x: 50, y: 50}),
-      new jaws.Sprite({image: "res/earthworm.png", x: 100, y: 50}),
-      new jaws.Sprite({image: "res/earthworm.png", x: 50, y: 100})
-    ];
-
-    jaws.on_keydown("esc", function () {
-      player_position.x = player.x;
-      player_position.y = player.y;
-      jaws.switchGameState(PauseState);
-    });
+    jaws.on_keydown("esc", function () { jaws.switchGameState(PauseState); });
     jaws.preventDefaultKeys(["up", "down", "left", "right", "space"]);
   };
 
@@ -117,15 +107,24 @@ function PlayState() {
   }
 }
 
-function MenuState() {
-  var lemur, worm;
+function initPlayerAndTargets(level) {
+  player = new jaws.Sprite({image: lemur.src, x: center.x - lemur.width/2, y: center.y - lemur.height/2});
+  targets = [];
+  for (var i = 0; i < level; i++) {
+    var x = Math.floor(Math.random() * jaws.width);
+    var y = Math.floor(Math.random() * jaws.height);
+    targets.push(new jaws.Sprite({image: worm.src, x: x, y: y}));
+  }
+}
 
+function MenuState() {
   this.setup = function () {
     center.x = jaws.width / 2;
     center.y = jaws.height / 2;
     lemur = jaws.assets.get("res/lemur.png");
     worm = jaws.assets.get("res/earthworm.png");
     jaws.on_keydown("enter", function () {jaws.switchGameState(PlayState)});
+    initPlayerAndTargets(level);
   };
 
   this.draw = function () {
