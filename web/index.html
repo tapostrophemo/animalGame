@@ -22,7 +22,7 @@ var center = {};
 var lemur, worm;
 var player;
 var targets;
-var level = 1;
+var level;
 
 function PauseState() {
   this.setup = function () {
@@ -98,13 +98,13 @@ function PlayState() {
       }
     }
   };
+}
 
-  function constrainToCanvas(item) {
-    if (item.x < 0) { item.x = 0; }
-    if ((item.x + item.width) > jaws.width) { item.x = jaws.width - item.width; }
-    if (item.y < 0) { item.y = 0; }
-    if ((item.y + item.height) > jaws.height) { item.y = jaws.height - item.height; }
-  }
+function constrainToCanvas(item) {
+  if (item.x < 0) { item.x = 0; }
+  if ((item.x + item.width) > jaws.width) { item.x = jaws.width - item.width; }
+  if (item.y < 0) { item.y = 0; }
+  if ((item.y + item.height) > jaws.height) { item.y = jaws.height - item.height; }
 }
 
 function initPlayerAndTargets(level) {
@@ -113,12 +113,19 @@ function initPlayerAndTargets(level) {
   for (var i = 0; i < level; i++) {
     var x = Math.floor(Math.random() * jaws.width);
     var y = Math.floor(Math.random() * jaws.height);
-    targets.push(new jaws.Sprite({image: worm.src, x: x, y: y}));
+    var target = new jaws.Sprite({image: worm.src, x: x, y: y});
+    if (jaws.distanceBetween(player, target) < 2*player.width) {
+      target.x += 2*player.width * (Math.random() >= 0.5 ? 1 : -1);
+      target.y += 2*player.height * (Math.random() >= 0.5 ? 1 : -1);
+    }
+    constrainToCanvas(target);
+    targets.push(target);
   }
 }
 
 function MenuState() {
   this.setup = function () {
+    level = 1;
     center.x = jaws.width / 2;
     center.y = jaws.height / 2;
     lemur = jaws.assets.get("res/lemur.png");
